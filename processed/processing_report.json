@@ -1,0 +1,64 @@
+{
+  "input_files": [
+    "thong_tin_links_accessory.csv",
+    "thong_tin_links_bluetooth.csv",
+    "thong_tin_links_laptop.csv",
+    "thong_tin_links_micro.csv",
+    "thong_tin_links_pc.csv",
+    "thong_tin_links_san_pham.csv",
+    "thong_tin_links_screen.csv",
+    "thong_tin_links_speaker.csv",
+    "thong_tin_links_tablet.csv",
+    "thong_tin_products_links.csv"
+  ],
+  "raw_rows": 3037,
+  "clean_rows": 3014,
+  "removed_rows": 23,
+  "spec_rows": 30265,
+  "categories": [
+    {
+      "category": "dien_thoai",
+      "product_count": 921
+    },
+    {
+      "category": "laptop",
+      "product_count": 675
+    },
+    {
+      "category": "phu_kien",
+      "product_count": 359
+    },
+    {
+      "category": "tai_nghe_bluetooth",
+      "product_count": 301
+    },
+    {
+      "category": "man_hinh",
+      "product_count": 291
+    },
+    {
+      "category": "may_tinh_bang",
+      "product_count": 178
+    },
+    {
+      "category": "loa",
+      "product_count": 151
+    },
+    {
+      "category": "pc",
+      "product_count": 82
+    },
+    {
+      "category": "micro",
+      "product_count": 56
+    }
+  ],
+  "output_files": [
+    "products_clean.csv",
+    "products_clean.jsonl",
+    "product_specs_long.csv",
+    "product_specs_long.jsonl",
+    "category_counts.csv",
+    "processing_report.json"
+  ]
+}
