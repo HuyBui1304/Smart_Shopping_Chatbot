@@ -4,7 +4,7 @@ from chatbot_data.preprocess import clean_raw_data, clean_text, normalize_column
 
 
 def test_clean_text_removes_html_entities_and_extra_spaces():
-    assert clean_text(" A&nbsp;  &amp;\\n B ") == "A&nbsp; & B"
+    assert clean_text(" A&nbsp;  &amp;\\n B ") == "A & B"
 
 
 def test_normalize_column_name():

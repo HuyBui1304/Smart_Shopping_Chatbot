@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import unicodedata
@@ -51,11 +52,9 @@ def clean_text(value: object) -> str:
         return ""
 
     text = str(value).replace("\ufeff", "")
-    text = text.replace("&amp;", "&")
-    text = text.replace("&quot;", '"')
-    text = text.replace("&gt;", ">")
-    text = text.replace("&lt;", "<")
+    text = html.unescape(text)
     text = unicodedata.normalize("NFC", text)
+    text = re.sub(r"\\[rnt]", " ", text)
     text = re.sub(r"[\r\n\t]+", " ", text)
     text = re.sub(r"\s{2,}", " ", text)
     return text.strip()
