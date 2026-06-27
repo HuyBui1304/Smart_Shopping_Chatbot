@@ -1,30 +1,24 @@
-# Chat Bot Product Data
+# Smart Shopping Chatbot Data
 
-Project này dùng để làm sạch và chuẩn hóa dữ liệu sản phẩm từ các file CSV trong `data/`, sau đó xuất dữ liệu đã xử lý vào `processed/`.
+Project này dùng notebook để xem dữ liệu sản phẩm, làm sạch, chuẩn hóa và xuất kết quả vào `processed/`.
 
-Hiện tại project chưa train model. Phần chính là data preprocessing để chuẩn bị dữ liệu sạch cho các bước sau như tìm kiếm sản phẩm, RAG hoặc fine-tuning chatbot.
+Hiện tại project chưa train model. Notebook `code/data_preprocessing.ipynb` là nơi chính để đọc dữ liệu, kiểm tra dữ liệu và tạo dataset sạch cho các bước tiếp theo như tìm kiếm sản phẩm, RAG hoặc chuẩn bị fine-tuning chatbot.
 
 ## Cấu trúc project
 
 ```text
 .
 ├── data/                         # CSV gốc
+├── code/
+│   └── data_preprocessing.ipynb   # Notebook chính để xem, làm sạch và export dữ liệu
 ├── processed/                    # Dữ liệu sau xử lý
-│   ├── README.md                 # Giải thích từng file output
 │   ├── products_clean.csv
 │   ├── products_clean.jsonl
 │   ├── product_specs_long.csv
 │   ├── product_specs_long.jsonl
 │   ├── category_counts.csv
 │   └── processing_report.json
-├── notebooks/                    # Notebook phân tích/thử nghiệm
-│   └── data_preprocessing.ipynb
-├── src/chatbot_data/             # Source code chính
-│   └── preprocess.py             # Script làm sạch và chuẩn hóa dữ liệu
-├── tests/                        # Unit test cho preprocessing
-├── Makefile                      # Lệnh chạy nhanh
-├── requirements.txt              # Dependency cơ bản
-└── pyproject.toml                # Cấu hình Python package
+└── requirements.txt
 ```
 
 ## Cài đặt
@@ -41,37 +35,31 @@ source .venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-## Chạy xử lý dữ liệu
+## Xem và xử lý dữ liệu
+
+Mở notebook:
 
 ```bash
-make preprocess
+python3 -m jupyter notebook code/data_preprocessing.ipynb
 ```
 
-Hoặc chạy trực tiếp:
+Chạy toàn bộ cell trong notebook để đọc CSV từ `data/`, làm sạch dữ liệu và xuất file vào `processed/`.
+
+Nếu muốn chạy lại notebook từ terminal:
 
 ```bash
-PYTHONPATH=src python3 -m chatbot_data.preprocess --input data --output processed
+python3 -m jupyter nbconvert --to notebook --execute code/data_preprocessing.ipynb --inplace
 ```
 
-Sau khi chạy xong, dữ liệu sạch nằm trong `processed/`.
-
-## Kiểm tra
-
-```bash
-make test
-```
-
-Lệnh test cần cài dependency trong `requirements.txt` trước.
+Lệnh này sẽ execute `code/data_preprocessing.ipynb` và cập nhật lại các file trong `processed/`.
 
 ## File đầu ra
 
-Xem chi tiết trong [processed/README.md](processed/README.md).
-
 Các file chính:
 
-- `processed/products_clean.csv`: bảng sản phẩm sạch dạng CSV.
+- `processed/products_clean.csv`: bảng sản phẩm sạch dạng CSV, mỗi dòng là một sản phẩm và có `product_id`.
 - `processed/products_clean.jsonl`: bảng sản phẩm sạch dạng JSON Lines.
-- `processed/product_specs_long.csv`: thông số kỹ thuật dạng dài.
+- `processed/product_specs_long.csv`: bảng thông số kỹ thuật dạng dài, tham chiếu sản phẩm bằng `product_id`.
 - `processed/product_specs_long.jsonl`: thông số kỹ thuật dạng dài ở JSON Lines.
 - `processed/category_counts.csv`: thống kê số sản phẩm theo danh mục.
 - `processed/processing_report.json`: báo cáo quá trình xử lý.
