@@ -1,35 +1,43 @@
-# Smart Shopping Chatbot Data
+# Smart Shopping Chatbot
 
-Project này dùng notebook để xem dữ liệu sản phẩm, làm sạch, chuẩn hóa và xuất kết quả vào `processed/`.
+This project prepares a product catalog dataset, generates chat fine-tuning examples, trains a Qwen2.5 LoRA adapter, and runs a local shopping chatbot with lightweight product retrieval.
 
-Hiện tại project chưa train model. Notebook `code/data_preprocessing.ipynb` là nơi chính để đọc dữ liệu, kiểm tra dữ liệu và tạo dataset sạch cho các bước tiếp theo như tìm kiếm sản phẩm, RAG hoặc chuẩn bị fine-tuning chatbot.
+The current chatbot workflow combines:
 
-## Cấu trúc project
+- Product data from `processed/catalog.csv`
+- A fine-tuned Qwen2.5 LoRA adapter in `models/shopping_chatbot_lora_adapter`
+- Local keyword retrieval to provide product context at inference time
+
+## Project Structure
 
 ```text
 .
-├── data/                         # CSV gốc
-├── code/
-│   ├── data_preprocessing.ipynb   # Notebook chính để xem, làm sạch và export dữ liệu
-│   ├── create_finetune_qa.ipynb # Tạo Q&A fine-tune theo tỷ lệ 80% template, 20% Groq API
-│   └── train_qwen2_5_colab.ipynb # Notebook Colab để fine-tune Qwen2.5 bằng QLoRA
-├── processed/                    # Dữ liệu sau xử lý
-│   ├── products_clean.csv
-│   ├── products_clean.jsonl
-│   ├── product_specs_long.csv
-│   ├── product_specs_long.jsonl
-│   ├── category_counts.csv
-│   └── processing_report.json
+├── data/                              # Raw product CSV files
+├── notebooks/
+│   ├── prepare_product_catalog.ipynb    # Clean and normalize raw product data
+│   ├── generate_fine_tuning_data.ipynb  # Generate fine-tuning Q&A data
+│   ├── model_training_colab.ipynb       # Train the chatbot adapter on Colab
+│   └── local_chatbot_inference.ipynb    # Run the local chatbot with the trained adapter
+├── processed/                         # Processed datasets and generated fine-tuning data
+│   ├── catalog.csv
+│   ├── catalog.jsonl
+│   ├── catalog_specs.csv
+│   ├── catalog_specs.jsonl
+│   ├── catalog_summary.csv
+│   ├── data_processing_report.json
+│   └── fine_tuning_dataset.jsonl
+├── models/
+│   └── shopping_chatbot_lora_adapter/
 └── requirements.txt
 ```
 
-## Cài đặt
+## Setup
 
 ```bash
 python3 -m pip install -r requirements.txt
 ```
 
-Nếu dùng môi trường ảo:
+Using a virtual environment is recommended:
 
 ```bash
 python3 -m venv .venv
@@ -37,62 +45,89 @@ source .venv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
-## Xem và xử lý dữ liệu
+## Prepare Product Data
 
-Mở notebook:
-
-```bash
-python3 -m jupyter notebook code/data_preprocessing.ipynb
-```
-
-Chạy toàn bộ cell trong notebook để đọc CSV từ `data/`, làm sạch dữ liệu và xuất file vào `processed/`.
-
-Nếu muốn chạy lại notebook từ terminal:
+Open:
 
 ```bash
-python3 -m jupyter nbconvert --to notebook --execute code/data_preprocessing.ipynb --inplace
+python3 -m jupyter notebook notebooks/prepare_product_catalog.ipynb
 ```
 
-Lệnh này sẽ execute `code/data_preprocessing.ipynb` và cập nhật lại các file trong `processed/`.
+This notebook reads raw CSV files from `data/`, cleans and normalizes the product catalog, and exports processed files to `processed/`.
 
-## Tạo Q&A Fine-tune 80/20
+## Generate Fine-Tuning Data
 
-Mở notebook:
+Open:
 
 ```bash
-python3 -m jupyter notebook code/create_finetune_qa.ipynb
+python3 -m jupyter notebook notebooks/generate_fine_tuning_data.ipynb
 ```
 
-Notebook tạo cặp câu hỏi - câu trả lời từ `processed/products_clean.csv` theo tỷ lệ:
+The dataset generator creates Q&A examples from `processed/catalog.csv` using an 80/20 mix:
 
-- 80% sinh bằng template, không gọi API.
-- 20% sinh bằng Groq API để dữ liệu tự nhiên hơn.
+- 80% template-generated Q&A
+- 20% Groq-generated Q&A for more natural phrasing
 
-Mặc định phần API chưa chạy. Nếu muốn bật 20% Groq API, set API key:
+API generation is disabled by default. To enable the Groq-generated portion, set:
 
 ```bash
 export GROQ_API_KEY="your_groq_api_key"
 ```
 
-Sau đó trong notebook đổi:
+Then set this in the notebook:
 
 ```python
 RUN_API = True
 ```
 
-Notebook sẽ lưu dataset ra:
+The output file is:
 
 ```text
-processed/finetune_qa_80_20.jsonl
+processed/fine_tuning_dataset.jsonl
 ```
 
-## File đầu ra
+## Train Qwen2.5 LoRA Adapter
 
-Các file chính:
+Use the Colab notebook:
 
-- `processed/products_clean.csv`: bảng sản phẩm sạch dạng CSV, mỗi dòng là một sản phẩm và có `product_id`.
-- `processed/products_clean.jsonl`: bảng sản phẩm sạch dạng JSON Lines.
-- `processed/product_specs_long.csv`: bảng thông số kỹ thuật dạng dài, tham chiếu sản phẩm bằng `product_id`.
-- `processed/product_specs_long.jsonl`: thông số kỹ thuật dạng dài ở JSON Lines.
-- `processed/category_counts.csv`: thống kê số sản phẩm theo danh mục.
-- `processed/processing_report.json`: báo cáo quá trình xử lý.
+```text
+notebooks/model_training_colab.ipynb
+```
+
+Upload `processed/fine_tuning_dataset.jsonl` in Colab, run the notebook, then download the trained adapter into:
+
+```text
+models/shopping_chatbot_lora_adapter/
+```
+
+The adapter is not a full model. At inference time it must be loaded together with the base model:
+
+```text
+Qwen/Qwen2.5-3B-Instruct
+```
+
+## Run Local Chatbot
+
+Open:
+
+```bash
+python3 -m jupyter notebook notebooks/local_chatbot_inference.ipynb
+```
+
+The notebook loads:
+
+- Base model `Qwen/Qwen2.5-3B-Instruct`
+- LoRA adapter from `models/shopping_chatbot_lora_adapter`
+- Product data from `processed/catalog.csv`
+
+The first run may download the base model from Hugging Face.
+
+## Main Outputs
+
+- `processed/catalog.csv`: cleaned product table, one row per product with `product_id`
+- `processed/catalog.jsonl`: JSON Lines version of the cleaned product table
+- `processed/catalog_specs.csv`: long-format product specifications keyed by `product_id`
+- `processed/catalog_specs.jsonl`: JSON Lines version of the long-format specifications
+- `processed/catalog_summary.csv`: product count per category
+- `processed/data_processing_report.json`: preprocessing summary
+- `processed/fine_tuning_dataset.jsonl`: chat fine-tuning dataset
